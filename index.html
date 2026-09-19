@@ -7,10 +7,12 @@
     <!-- اضافه کردن کتابخانه تولید QR Code -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <style>
-        /* فراخوانی فونت از روی سرور خودتان (نسخه وریبل که تمام وزن‌ها را دارد) */
+        /* فراخوانی فونت هوشمند با سیستم پشتیبان (Fallback) برای مرورگرهای موبایل */
         @font-face {
             font-family: 'Vazirmatn';
-            src: url('./Vazirmatn-VariableFont_wght.ttf') format('truetype');
+            src: url('./Vazirmatn-Variable.woff2') format('woff2-variations'),
+                 url('./Vazirmatn-Variable.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.0.3/fonts/variable/Vazirmatn-Variable.woff2') format('woff2');
             font-weight: 100 900;
             font-style: normal;
             font-display: swap;
