@@ -89,7 +89,13 @@
             z-index: 10;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         }
-        .navbar-brand { cursor: pointer; display: flex; align-items: center; }
+        .navbar-brand { 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            outline: none; 
+            -webkit-tap-highlight-color: transparent; 
+        }
 
         .brand-logo {
             height: 65px;
@@ -473,6 +479,8 @@
         setTimeout(()=>{ if(cur < Q.length-1){ cur++; quiz(); } else finish(); }, 260);
     }
 
+    function prev() { cur--; quiz(); }
+
     function finish() {
         const s={}, p={};
         KEYS.forEach(k=>{s[k]=0; p[k]=0;});
@@ -507,6 +515,7 @@
         currentResultData = { k, comp, rest };
         const m = M[k];
         const mt = M[m.match];
+        document.documentElement.style.setProperty("--acc", "var(--primary)");
         app.className = "";
 
         app.innerHTML = `
