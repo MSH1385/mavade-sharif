@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مهندسی و علم مواد</title>
+    <!-- اضافه کردن کتابخانه تولید QR Code -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/vazirmatn/33.0.3/Vazirmatn-font-face.css');
+
+        :root {
+            /* تم دارک (پیش‌فرض) */
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --bg-color: #020813;
+            --card-bg: rgba(4, 15, 35, 0.85);
+            --text-main: #f0f4f8;
+            --text-muted: #94a3b8;
+            --paper: rgba(59, 130, 246, 0.1);
+            --ink: #f8fafc;
+            --line: rgba(59, 130, 246, 0.2);
+            --acc: var(--primary);
+        }
+
+        body.light-mode {
+            /* تم لایت - سرمه‌ای شریف */
+            --primary: #002051;
+            --primary-hover: #003380;
+            --bg-color: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #001029;
+            --text-muted: #475569;
+            --paper: rgba(0, 32, 81, 0.08);
+            --ink: #002051;
+            --line: rgba(0, 32, 81, 0.15);
+            --acc: var(--primary);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Vazirmatn', Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Navbar */
+        .navbar {
+            width: calc(100% - 40px);
+            max-width: 1000px;
+            padding: 5px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px auto 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            z-index: 10;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand { cursor: pointer; display: flex; align-items: center; }
+
+        .brand-logo {
+            height: 65px;
+            width: auto;
+            max-width: 280px;
+            object-fit: contain;
+            margin: 0px 0px;
+            transition: filter 0.3s ease;
+            filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2745%) hue-rotate(200deg) brightness(104%) contrast(94%);
+        }
+
+        body.light-mode .brand-logo {
+            filter: brightness(0) saturate(100%) invert(11%) sepia(55%) saturate(3065%) hue-rotate(204deg) brightness(96%) contrast(105%);
+        }
+
+        #theme-toggle {
+            background: var(--paper); border: 1px solid var(--line); color: var(--primary);
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
+        }
+        #theme-toggle:hover { transform: scale(1.1); }
+        #theme-toggle svg { width: 20px; height: 20px; stroke: currentColor; }
+        body.light-mode .sun-icon { display: none; }
+        body:not(.light-mode) .moon-icon { display: none; }
+
+        /* Main Container */
+        #app {
+            width: 90%;
+            max-width: 480px;
+            margin: 30px 0 50px 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 30px 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            z-index: 1;
+            transition: max-width 0.4s ease, background-color 0.3s ease;
+            color: var(--text-main);
+        }
+
+        #app.home-view { max-width: 800px; padding: 40px 30px; }
+
+        button, a { font-family: inherit; cursor: pointer; color: inherit; }
+        h1 { font-size: 2rem; font-weight: 900; line-height: 1.3; margin-bottom: 5px; color: var(--text-main); }
+        h2 { font-size: 1.25rem; font-weight: 800; line-height: 1.6; color: var(--text-main); display: flex; align-items: center; }
+        h3 { font-size: 1rem; font-weight: 800; margin-bottom: 12px; color: var(--text-main); display: flex; align-items: center;}
+        p { color: var(--text-muted); }
+
+        .icon { width: 1.2em; height: 1.2em; vertical-align: middle; margin-left: 8px; flex-shrink: 0; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .spinner { animation: spin 1s linear infinite; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 15px; border: 0; border-radius: 12px; background: var(--acc); color: #fff !important; font-size: 1.05rem; font-weight: 700; transition: all 0.3s ease; text-decoration: none; }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 5px 15px rgba(0, 32, 81, 0.4); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn.ghost { background: transparent; color: var(--text-main) !important; border: 1.5px solid var(--line); margin-top: 10px; box-shadow: none;}
+        .btn.ghost:hover { background: var(--line); }
+        .row { display: flex; gap: 10px; margin-top: 10px; }
+        .row .btn { flex: 1; margin-top: 0; }
+
+        .breadcrumb { width: 100%; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; cursor: pointer; font-weight: bold; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--primary-hover); }
+        .breadcrumb span.sep { color: var(--line); font-size: 0.8rem; margin: 0 2px;}
+
+        /* Home Layout */
+        .hero-home { text-align: center; margin-bottom: 40px; }
+        .hero-home h1 { font-size: 2.5rem; margin-bottom: 15px; background: linear-gradient(135deg, var(--primary), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-home p { font-size: 1.05rem; max-width: 600px; margin: 0 auto 25px; }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+
+        .action-card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 25px; text-align: center; transition: transform 0.3s; }
+        .action-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .action-card h3 { font-size: 1.3rem; margin-bottom: 10px; justify-content: center; }
+
+        .action-card.highlight {
+            grid-column: 1 / -1;
+            background: var(--primary);
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 32, 81, 0.4);
+            padding: 40px 25px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .action-card.highlight h3 { color: #ffffff; font-size: 1.6rem; }
+        .action-card.highlight p { color: rgba(255, 255, 255, 0.9); max-width: 500px; font-size: 1.05rem;}
+        .action-card.highlight .btn {
+            background: var(--card-bg); color: var(--text-main) !important; border: 2px solid transparent; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 300px; margin-top: 10px;
+        }
+        .action-card.highlight .btn:hover { background: transparent; color: #ffffff !important; border-color: #ffffff; box-shadow: none; }
+
+        .map-box { background: var(--paper); border: 2px dashed var(--primary); border-radius: 16px; padding: 30px 20px; text-align: center; margin: 20px 0; }
+        .map-box h4 { font-size: 1.2rem; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; justify-content: center; }
+
+        /* Countdown Timer */
+        .countdown-wrap { display: flex; justify-content: center; gap: 15px; margin: 20px 0; direction: ltr; }
+        .time-box { background: var(--primary); color: #fff; padding: 12px; border-radius: 12px; min-width: 70px; text-align: center; box-shadow: 0 5px 15px rgba(0, 32, 81, 0.2); }
+        .time-box .val { font-size: 1.8rem; font-weight: 900; line-height: 1; margin-bottom: 5px; }
+        .time-box .lbl { font-size: 0.75rem; opacity: 0.9; }
+
+        .timeline { border-right: 3px solid var(--primary); padding-right: 25px; margin: 30px 20px 30px 0; text-align: right; }
+        .timeline-item { position: relative; margin-bottom: 25px; }
+        .timeline-dot { position: absolute; right: -36px; top: 5px; width: 18px; height: 18px; background: var(--primary); border-radius: 50%; border: 4px solid var(--card-bg); box-shadow: 0 0 10px var(--primary); }
+        .timeline-content h4 { color: var(--primary); font-size: 1.1rem; margin-bottom: 5px; font-weight: 800; }
+        .timeline-content p { font-size: 0.95rem; margin: 0; }
+
+        .promo-box { background: var(--paper); border: 1px dashed var(--primary); border-radius: 12px; padding: 20px; margin: 25px 0; text-align: center; }
+        .promo-box h3 { justify-content: center; }
+        .discount-code { display: inline-block; font-family: monospace; font-size: 1.4rem; font-weight: 900; background: var(--card-bg); border: 1px solid var(--line); padding: 8px 20px; border-radius: 8px; margin: 10px 0; cursor: pointer; transition: all 0.2s; letter-spacing: 2px;}
+        .discount-code:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .tile { position: relative; aspect-ratio: 1; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; color: #fff; border: 1px solid rgba(255,255,255,0.1); text-align: right; overflow: hidden; transition: transform 0.2s; }
+        button.tile:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
+        .tile.dark { color: #0f172a !important; }
+        .tile .n { font-size: .65rem; opacity: .8; font-weight: 600; }
+        .tile .s { font-size: 1.6rem; font-weight: 900; line-height: 1; direction: ltr; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .tile .nm { font-size: .65rem; font-weight: 700; text-align: center; white-space: nowrap; }
+        .tile.big { width: 140px; border-radius: 16px; padding: 12px 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin: 15px auto; }
+        .tile.big .n { font-size: .85rem; }
+        .tile.big .s { font-size: 3rem; margin: 10px 0; }
+        .tile.big .nm { font-size: .9rem; }
+
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 30px; }
+        .intro .grid .tile { animation: pop .5s both; color: var(--text-main) !important; }
+        @keyframes pop { from { opacity: 0; transform: scale(.6) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        .top { display: flex; justify-content: space-between; align-items: center; font-size: .9rem; color: var(--text-muted); margin-bottom: 10px; }
+        .bar { height: 6px; background: rgba(128,128,128,0.2); border-radius: 4px; margin: 5px 0 25px; overflow: hidden; }
+        .bar i { display: block; height: 100%; background: var(--acc); transition: width .3s ease; }
+        .opts { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+        .opt { text-align: right; background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px; padding: 15px 18px; font-size: 1rem; color: var(--text-main); line-height: 1.7; transition: all .2s; }
+        .opt:hover { background: var(--line); }
+        .opt.on { border-color: var(--acc); background: var(--paper); box-shadow: inset -4px 0 0 var(--acc); }
+        .fade { animation: fade .4s both; }
+        @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hero { text-align: center; padding: 10px 0; }
+        .kicker { font-size: .95rem; color: var(--text-muted); margin-bottom: 5px;}
+        .tag { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-top: 8px; transition: color 0.3s ease; }
+        .sec { border-top: 1px solid var(--line); padding: 20px 0; }
+        .sec p { color: var(--text-main); font-size: 0.95rem; text-align: justify; opacity: 0.9; line-height: 1.8; }
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .chip { font-size: .85rem; padding: 4px 14px; border-radius: 20px; background: var(--paper); border: 1px solid var(--line); color: var(--text-main); }
+
+        .stat { display: grid; grid-template-columns: 120px 1fr; align-items: center; gap: 10px; font-size: .9rem; margin: 8px 0; color: var(--text-main); }
+        .dots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        .dots i { height: 8px; border-radius: 4px; background: var(--line); transition: background 0.3s ease, box-shadow 0.3s ease; }
+        .dots i.f { background: var(--primary); box-shadow: 0 0 8px rgba(59, 130, 246, 0.4); opacity: 0.9; }
+        body.light-mode .dots i.f { background: var(--primary); box-shadow: 0 0 8px rgba(0, 32, 81, 0.4); opacity: 0.9; }
+
+        .comp { display: flex; height: 16px; border-radius: 6px; overflow: hidden; margin: 15px 0 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .85rem; color: var(--text-main); }
+        .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--c); margin-left: 6px; }
+        .mate { display: flex; gap: 15px; align-items: center; background: var(--paper); padding: 12px; border-radius: 12px; }
+        .mate .tile { width: 70px; flex: none; border-radius: 10px; }
+        .mate .tile .s { font-size: 1.4rem; }
+        .mate b { color: var(--text-main); }
+        .field { font-weight: 800; color: var(--text-main); background: var(--paper); padding: 2px 8px; border-radius: 6px; display: inline-block; margin-top: 5px; }
+
+        /* Updated Toast */
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--card-bg); color: var(--text-main); padding: 12px 24px; border-radius: 12px; font-size: 1rem; font-weight: bold; border: 1px solid var(--primary); box-shadow: 0 10px 40px rgba(0,0,0,0.2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 100; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 10px;}
+
+        @media (max-width: 480px) {
+            .hero-home h1 { font-size: 2.1rem; }
+            .grid { grid-template-columns: repeat(3, 1fr); }
+            .countdown-wrap { gap: 10px; }
+            .time-box { min-width: 60px; padding: 10px; }
+            .time-box .val { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body class="light-mode">
+
+<canvas id="bg-canvas"></canvas>
+
+<nav class="navbar">
+    <div class="navbar-brand" onclick="goHome()">
+        <img src="./IMG_9197.PNG" alt="SUT Materials" class="brand-logo">
+    </div>
+    <button id="theme-toggle" aria-label="تغییر پوسته">
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+</nav>
+
+<main id="app" class="home-view"></main>
+
+<script>
+    const M={steel:{sym:"Fe",name:"فولاد",fam:"آلیاژ فلزی",g:["#8f99a3","#3b444d"],tag:"خم می‌شوم، اما نمی‌شکنم",desc:"فولاد پرمصرف‌ترین آلیاژ دنیاست، چون تعادل کمیابی بین استحکام و چقرمگی دارد. تو هم همین‌طوری: زیر فشار دوام می‌آوری، کار را تا آخر می‌رسانی و آدم‌ها بی‌دغدغه به تو تکیه می‌کنند.",str:["قابل اعتماد","سخت‌کوش","همه‌کاره"],weak:"خوردگی. اگر به خودت استراحت ندهی، کم‌کم زنگ می‌زنی؛ حتی فولاد هم پوشش محافظ لازم دارد.",fact:"سالانه نزدیک به دو میلیارد تن فولاد در دنیا تولید می‌شود.",field:"متالورژی صنعتی: عملیات حرارتی، جوشکاری و شکل‌دادن",match:"graphene",why:"ثبات تو و جسارت او، پروژه‌ای می‌سازد که هم نوآور است هم به سرانجام می‌رسد.",st:[5,4,3,3,2]},titanium:{sym:"Ti",name:"تیتانیوم",fam:"فلز سبک",g:["#a9b4d0","#5a6485"],tag:"بی‌سروصدا، بی‌نقص",desc:"تیتانیوم حدود ۴۰ درصد سبک‌تر از فولاد است ولی استحکامی هم‌رده دارد، و یک لایه اکسید نامرئی آن را از خوردگی حفظ می‌کند. تو دقیق و مستقلی، کارت را بی‌ادعا در بهترین حالت انجام می‌دهی و در هر محیطی خودت را حفظ می‌کنی.",str:["دقیق","مستقل","سازگار با هر محیطی"],weak:"هزینه تولید. کمال‌گرایی‌ات گاهی کار را گران و کند می‌کند.",fact:"بدن انسان تیتانیوم را پس نمی‌زند؛ برای همین در ایمپلنت دندان و مفصل مصنوعی به کار می‌رود.",field:"بیومواد و مواد پیشرفته هوافضا",match:"copper",why:"او جمع را گرم می‌کند، تو کیفیت کار را تضمین می‌کنی.",st:[4,3,3,3,3]},gold:{sym:"Au",name:"طلا",fam:"فلز نجیب",g:["#f6dc8a","#c1912a"],dark:1,tag:"هیچ‌وقت کدر نمی‌شوم",desc:"طلا نجیب‌ترین فلز است؛ در هوا اکسید نمی‌شود و بعد از هزاران سال همان درخشش را دارد. تو هم اصیلی: مهربان، وفادار و کسی که اطرافیانش کنارش احساس ارزشمند بودن می‌کنند.",str:["مهربان","وفادار","اصیل"],weak:"نرمی بیش از حد. طلای خالص با کمی فشار تغییر شکل می‌دهد؛ مراقب باش خودت را برای همه خرج نکنی.",fact:"یک گرم طلا را می‌شود به ورقی حدود یک متر مربع تبدیل کرد؛ آن‌قدر نازک که نور از آن رد شود.",field:"متالورژی استخراجی و نانومواد",match:"glass",why:"صداقت او و وفاداری تو، رابطه‌ای بدون زنگار می‌سازد.",st:[2,5,4,5,2]},copper:{sym:"Cu",name:"مس",fam:"فلز رسانا",g:["#e59a6d","#8e4520"],tag:"انرژی را به همه می‌رسانم",desc:"مس بعد از نقره بهترین رسانای الکتریسیته و گرماست و بیشتر سیم‌کشی‌های دنیا از آن است. تو حلقه وصل جمعی؛ حال خوب را به بقیه منتقل می‌کنی و آدم‌ها را به هم وصل می‌کنی.",str:["ارتباط‌گیر","پرانرژی","گرم"],weak:"گرم شدن. آن‌قدر انرژی می‌دهی که گاهی خودت داغ می‌کنی و می‌سوزی.",fact:"رنگ سبز مجسمه آزادی، لایه پتینه‌ای است که روی پوسته مسی‌اش تشکیل شده.",field:"مواد الکترونیکی و متالورژی استخراجی",match:"silicon",why:"مثل هر تراشه: او محاسبه می‌کند، تو مسیرهای ارتباط را می‌سازی.",st:[3,4,5,4,3]},diamond:{sym:"C",name:"الماس",fam:"سرامیک فوق‌سخت",g:["#f4fbff","#a8cfe0"],dark:1,tag:"زیر فشار ساخته شده‌ام",desc:"الماس سخت‌ترین ماده طبیعی است و در عمق زمین زیر فشار و دمای عظیم شکل می‌گیرد. تو قاطع، رک و درخشانی؛ استانداردهای بالایی داری و در تصمیم‌گیری تردید نمی‌کنی.",str:["قاطع","رک","جاه‌طلب"],weak:"تردی. سخت‌ترینی ولی خم نمی‌شوی؛ یک ضربه از زاویه درست می‌تواند ترکت بیندازد.",fact:"الماس و گرافیتِ نوک مداد هر دو کربن خالص‌اند؛ فقط چیدمان اتم‌ها فرق دارد.",field:"سرامیک‌ها و مواد فوق‌سخت",match:"rubber",why:"او انعطاف را به تو یادآوری می‌کند، تو به او جهت می‌دهی.",st:[5,1,2,4,3]},glass:{sym:"SiO₂",name:"شیشه",fam:"جامد آمورف",g:["#d4f0ee","#6fb3b0"],dark:1,tag:"هرچه در دل دارم، پیداست",desc:"شیشه جامدی بی‌نظم است که نور بی‌مانع از آن می‌گذرد. تو هم زلالی: صادق، بی‌ریا و حساس؛ آدم‌ها دقیقاً می‌دانند با چه کسی طرف‌اند.",str:["صادق","شفاف","باصفا"],weak:"تردی. در برابر ضربه ناگهانی آسیب‌پذیری؛ ولی شیشه سکوریت هم شیشه است، فقط عملیات حرارتی دیده.",fact:"اینترنتی که این صفحه را با آن باز کرده‌ای، از الیاف شیشه‌ای کف اقیانوس‌ها گذشته است.",field:"مهندسی سرامیک و شیشه",match:"gold",why:"مهربانی او، صداقت تو را امن نگه می‌دارد.",st:[2,1,3,5,3]},rubber:{sym:"NR",name:"لاستیک",fam:"الاستومر",g:["#4a4f55","#1f2327"],tag:"هرچه بکشی، برمی‌گردم",desc:"الاستومرها چند برابر طول خود کش می‌آیند و دوباره به حالت اول برمی‌گردند. تو شوخ‌طبع و سازگاری، سختی‌ها را جذب می‌کنی و زود به حال خوب برمی‌گردی.",str:["انعطاف‌پذیر","شوخ‌طبع","بی‌کینه"],weak:"سرما. لاستیک در دمای پایین انعطافش را از دست می‌دهد؛ در محیط سرد و بی‌محبت تو هم خشک می‌شوی.",fact:"فاجعه شاتل چلنجر در ۱۹۸۶ به‌خاطر یک اورینگ لاستیکی بود که در هوای سرد سفت شده بود.",field:"مهندسی پلیمر",match:"diamond",why:"تو حال جمع را خوب می‌کنی، او مسیرش را مشخص.",st:[2,5,4,3,4]},carbon:{sym:"CFRP",name:"فیبر کربن",fam:"کامپوزیت",g:["#3a3f47","#0f1318"],tag:"با هم، قوی‌تریم",desc:"کامپوزیت فیبر کربن از الیاف بسیار قوی و رزین نگه‌دارنده ساخته می‌شود؛ هر جزء ضعف دیگری را می‌پوشاند. تو تیم‌سازی؛ نقاط قوت آدم‌های مختلف را کنار هم می‌گذاری و نتیجه‌ای بزرگ‌تر از جمع اجزا می‌سازی.",str:["تیم‌ساز","چندبعدی","استراتژیست"],weak:"آسیب پنهان. کامپوزیت ممکن است از درون لایه‌لایه شود بی‌آنکه از بیرون پیدا باشد؛ حرفت را توی خودت نریز.",fact:"حدود نیمی از وزن سازه بوئینگ ۷۸۷ از کامپوزیت است.",field:"مهندسی کامپوزیت",match:"steel",why:"تو طراحی می‌کنی، او تا آخر پای اجرا می‌ماند.",st:[5,3,4,3,4]},graphene:{sym:"Gr",name:"گرافن",fam:"نانوماده",g:["#5b6b7c","#1c2733"],tag:"یک اتم ضخامت، بی‌نهایت بلندپروازی",desc:"گرافن تک‌لایه‌ای از اتم‌های کربن است؛ از قوی‌ترین و رساناترین مواد شناخته‌شده. تو نوآور و آینده‌نگری، سریع فکر می‌کنی و همیشه یک قدم جلوتر از زمانه‌ای.",str:["نوآور","آینده‌نگر","سریع"],weak:"تولید انبوه. ایده‌های درخشان زیادی داری، ولی تبدیلشان به واقعیت در مقیاس بزرگ چالش توست.",fact:"گرافن را اولین بار با نوار چسب از گرافیت جدا کردند و همین کار نوبل فیزیک ۲۰۱۰ را برد.",field:"نانومواد",match:"nitinol",why:"تو دنیا را عوض می‌کنی، او مطمئن می‌شود خودت را گم نکنی.",st:[5,4,4,2,5]},nitinol:{sym:"NiTi",name:"نایتینول",fam:"آلیاژ حافظه‌دار",g:["#c7c0d8","#6f6690"],tag:"هر جا بروم، به خودم برمی‌گردم",desc:"نایتینول آلیاژ نیکل و تیتانیوم است که شکل اولیه‌اش را به خاطر می‌سپارد؛ هر چقدر تغییر شکل بدهی، با کمی گرما به همان حالت برمی‌گردد. تو به اصول و ارزش‌هایت وفاداری و در هر شرایطی خودت می‌مانی.",str:["باثبات","اصول‌گرا","قابل اعتماد"],weak:"وابستگی به گذشته. گاهی آن‌قدر به شکل قبلی پایبندی که تغییرهای خوب را هم پس می‌زنی.",fact:"سیم‌های ارتودنسی و استنت‌های قلبی از نایتینول ساخته می‌شوند.",field:"مواد هوشمند و بیومواد",match:"piezo",why:"او شور لحظه را می‌آورد، تو ثبات را.",st:[4,4,3,4,3]},silicon:{sym:"Si",name:"سیلیسیم",fam:"نیمه‌رسانا",g:["#6d7fa6","#27334f"],tag:"منطق، با کنترل دقیق",desc:"سیلیسیم نیمه‌رسانای قلب همه تراشه‌هاست؛ رسانایی‌اش را با مقدار بسیار کمی ناخالصی دقیقاً تنظیم می‌کنند. تو تحلیلی و حساب‌شده‌ای؛ فقط وقتی لازم باشد روشن می‌شوی، اما وقتی بشوی دقیق عمل می‌کنی.",str:["تحلیلی","دقیق","منطقی"],weak:"نیاز به ناخالصی. سیلیسیم خالص رسانای ضعیفی است؛ آدم‌های متفاوتِ اطرافت تو را کامل می‌کنند.",fact:"سیلیسیم تراشه‌ها باید حدود ۹۹٫۹۹۹۹۹۹۹ درصد خالص باشد.",field:"مواد الکترونیکی و مدل‌سازی محاسباتی مواد",match:"copper",why:"تو محاسبه می‌کنی، او نتیجه را به همه می‌رساند.",st:[3,2,2,3,4]},piezo:{sym:"PZT",name:"پیزوالکتریک",fam:"سرامیک هوشمند",g:["#f2b544","#b35a12"],tag:"از فشار، برق می‌سازم",desc:"مواد پیزوالکتریک مثل سرامیک PZT وقتی تحت فشار قرار می‌گیرند، ولتاژ تولید می‌کنند. تو همین‌طوری: بحران برایت سوخت است و بهترین ایده‌هایت دقیقاً وقتی می‌رسد که همه کم آورده‌اند.",str:["خلاق","مسئله‌حل‌کن","شکوفا در بحران"],weak:"بدون فشار، بدون خروجی. اگر ددلاین نباشد، شاید اصلاً شروع نکنی.",fact:"جرقه فندک‌های فشاری و پروب دستگاه سونوگرافی با همین مواد کار می‌کند.",field:"مواد هوشمند و سرامیک‌های الکترونیکی",match:"titanium",why:"تو جرقه می‌زنی، او با دقت به نتیجه‌اش می‌رساند.",st:[3,3,3,3,5]}};
+    const KEYS=Object.keys(M);
+    const STAT=["استحکام","انعطاف","رسانایی اجتماعی","شفافیت","خلاقیت"];
+    const Q=[{q:"دو روز تا تحویل پروژه گروهی مانده و همه‌چیز به هم ریخته. تو چه می‌کنی؟",o:[["آرام کارها را تقسیم می‌کنم و تا آخر پای کار می‌مانم",{steel:2,carbon:1}],["با همه حرف می‌زنم و انرژی تیم را بالا می‌آورم",{copper:2,gold:1}],["یک راه‌حل عجیب و میان‌بر پیدا می‌کنم",{piezo:2,graphene:1}],["اول ریشه مشکل را تحلیل می‌کنم",{silicon:2,titanium:1}]]},{q:"کسی جلوی جمع از تو انتقاد تندی می‌کند.",o:[["رک و مستقیم جوابش را می‌دهم",{diamond:2,glass:1}],["با یک شوخی از کنارش می‌گذرم",{rubber:2,copper:1}],["ناراحت می‌شوم، ولی از موضعم عقب نمی‌کشم",{nitinol:2,steel:1}],["واکنشی نشان نمی‌دهم؛ بعد خصوصی حرف می‌زنم",{titanium:2,silicon:1}]]},{q:"آخر هفته ایده‌آلت؟",o:[["سفر یهویی و بی‌برنامه",{rubber:2,graphene:1}],["دورهمی با دوستان قدیمی",{gold:2,nitinol:1}],["ساختن یا راه انداختن یک چیز جدید",{graphene:2,piezo:1}],["ورزش سنگین یا کوه",{steel:2,diamond:1}]]},{q:"دوستانت تو را با کدام جمله توصیف می‌کنند؟",o:[["«هرچه توی دلش است، روی صورتش است»",{glass:2,gold:1}],["«کم حرف می‌زند، ولی هرچه بگوید دقیق است»",{silicon:2,diamond:1}],["«بدون او جمع‌مان جمع نیست»",{copper:2,rubber:1}],["«هر کاری به او بسپاری عالی درمی‌آید»",{titanium:2,carbon:1}]]},{q:"وقتی زیر فشار زیادی هستی…",o:[["بهترین ایده‌هایم همان موقع به ذهنم می‌رسد",{piezo:2,rubber:1}],["خم می‌شوم، ولی نمی‌شکنم",{steel:2,nitinol:1}],["قوی می‌مانم، ولی گاهی یک‌باره فرو می‌ریزم",{glass:2,diamond:1}],["خونسرد و دقیق، انگار اتفاقی نیفتاده",{titanium:2,silicon:1}]]},{q:"در یک تیم، کدام نقش مال توست؟",o:[["کسی که آدم‌های متفاوت را کنار هم می‌نشاند",{carbon:2,copper:1}],["مغز متفکر و نقشه‌کش",{silicon:2,graphene:1}],["کسی که همه به او اعتماد می‌کنند و درد دل می‌گویند",{gold:2,glass:1}],["کسی که تصمیم نهایی را قاطع می‌گیرد",{diamond:2,steel:1}]]},{q:"با تغییرهای بزرگ، مثل مهاجرت یا عوض کردن مسیر، چطوری؟",o:[["عاشقشم؛ هرچه جدیدتر، بهتر",{graphene:2,rubber:1}],["تغییر می‌کنم، ولی ریشه‌هایم را از دست نمی‌دهم",{nitinol:2,gold:1}],["اگر منطقی باشد، با برنامه انجامش می‌دهم",{carbon:2,titanium:1}],["اولش مقاومت می‌کنم، بعد کامل وفق می‌دهم",{rubber:2,steel:1}]]},{q:"به کدام ویژگی‌ات افتخار می‌کنی؟",o:[["صداقت",{glass:2,nitinol:1}],["اینکه آدم‌ها کنارم احساس ارزشمندی می‌کنند",{gold:2,copper:1}],["اینکه ذهنم هیچ‌وقت خاموش نمی‌شود",{piezo:2,graphene:1}],["اینکه حرفم یکی است",{diamond:2,titanium:1}]]},{q:"اگر یک ابرقدرت داشتی، کدام بود؟",o:[["وصل شدن به ذهن همه",{copper:2,glass:1}],["ترمیم خودکار بدن",{nitinol:2,piezo:1}],["سرعت نور",{graphene:2,piezo:1}],["ضدگلوله بودن",{steel:2,carbon:1}]]},{q:"سر امتحان به سؤالی می‌رسی که اصلاً بلد نیستی.",o:[["از چیزهایی که می‌دانم یک راه‌حل تازه می‌سازم",{carbon:2,piezo:1}],["قدم به قدم و منطقی به جواب نزدیک می‌شوم",{silicon:2,steel:1}],["بی‌خیال، می‌روم سؤال بعدی",{rubber:2,gold:1}],["هرچه می‌دانم صادقانه می‌نویسم، حتی ناقص",{glass:2,silicon:1}]]},{q:"چه چیزی بیشتر از همه آزارت می‌دهد؟",o:[["بی‌نظمی و کار نیمه‌تمام",{titanium:2,diamond:1}],["آدم‌هایی که بقیه را تنها می‌گذارند",{gold:2,nitinol:1}],["روزمرگی و تکرار",{graphene:2,rubber:1}],["قول‌هایی که زیرشان زده می‌شود",{nitinol:2,glass:1}]]},{q:"شعار زندگی‌ات کدام است؟",o:[["«یک دست صدا ندارد»",{carbon:2,copper:1}],["«یا راهی پیدا می‌کنم، یا راهی می‌سازم»",{piezo:2,graphene:1}],["«شاد باش و شاد کن»",{copper:2,carbon:1}],["«فشار، الماس می‌سازد»",{diamond:2,titanium:1}]]}];
+
+    const app = document.getElementById("app");
+    const fa = n => Number(n).toLocaleString("fa-IR");
+    let ans = [], cur = 0, order = [], currentResultData = null, countdownInterval = null;
+
+    const themeBtn = document.getElementById("theme-toggle");
+    themeBtn.onclick = () => { document.body.classList.toggle("light-mode"); };
+
+    function clearTimer() {
+        if(countdownInterval) clearInterval(countdownInterval);
+    }
+
+    function tile(k, cls="", i) {
+        const m = M[k];
+        return `<div class="tile ${cls} ${m.dark?"dark":""}" style="background:linear-gradient(145deg,${m.g[0]},${m.g[1]})" onclick="if(!this.closest('.grid[style*=\\'pointer-events: none\\']')) result('${k}')">
+<span class="n">${fa((i??KEYS.indexOf(k))+1)}</span><span class="s">${m.sym}</span><span class="nm">${m.name}</span></div>`;
+    }
+
+    function shuffle(a) {
+        a=[...a];
+        for(let i=a.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+        return a;
+    }
+
+    // ---------------- SVG ICONS ----------------
+    const iconFlask = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31L2 20h20L14 9.31V2"/><path d="M8 2h8"/></svg>`;
+    const iconTicket = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>`;
+    const iconShare = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
+    const iconPin = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+    const iconStar = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`;
+    const iconCheck = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+    const iconSpinner = `<svg class="icon spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>`;
+
+    // ---------------- VIEWS ----------------
+
+    function goHome() {
+        clearTimer();
+        app.className = "home-view fade";
+        app.innerHTML = `
+<div class="hero-home">
+    <h1>به دنیای شگفت‌انگیز مواد خوش آمدید</h1>
+    <p>غرفه مهندسی و علم مواد دانشگاه صنعتی شریف. سفری به درون ساختار چیزهایی که جهان ما را می‌سازند.</p>
+</div>
+<div class="cards-grid">
+    <div class="action-card highlight">
+        <h3>${iconFlask} تست شخصیت متریالی</h3>
+        <p style="margin-bottom: 20px; font-size:0.95rem;">به ۱۲ سوال کوتاه جواب بده تا متوجه بشی ویژگی‌های شخصیتی تو شبیه کدوم متریاله.</p>
+        <button class="btn" onclick="intro()">شروع تست</button>
+    </div>
+    <div class="action-card">
+        <h3>${iconTicket} درباره رویداد ما</h3>
+        <p style="margin-bottom: 20px; font-size:0.95rem;">آشنایی با نقشه رویداد، زمانبندی برنامه و چرایی شرکت در همایش علم مواد.</p>
+        <button class="btn" onclick="aboutEvent()">اطلاعات و ثبت‌نام</button>
+    </div>
+    <div class="action-card">
+        <h3>${iconShare} شبکه‌های اجتماعی</h3>
+        <p style="margin-bottom: 20px; font-size:0.95rem;">ما را در شبکه‌های اجتماعی دنبال کنید تا از جدیدترین برنامه‌ها باخبر شوید.</p>
+        <div class="row">
+            <a href="https://instagram.com/MSEbolur" target="_blank" class="btn ghost">اینستاگرام</a>
+            <a href="https://t.me/MSEbolur" target="_blank" class="btn ghost">تلگرام</a>
+        </div>
+    </div>
+</div>`;
+        window.scrollTo(0,0);
+    }
+
+    function aboutEvent() {
+        clearTimer();
+        app.className = "fade";
+        app.innerHTML = `
+<div class="breadcrumb"><a onclick="goHome()">خانه</a> <span class="sep">/</span> <span>درباره همایش</span></div>
+<h1 style="text-align:center; margin:10px 0 20px;">درباره همایش علم مواد</h1>
+
+<div class="sec">
+    <h3 style="justify-content:center;">زمان باقی‌مانده تا شروع رویداد</h3>
+    <div class="countdown-wrap">
+        <div class="time-box"><div class="val" id="cd-days">--</div><div class="lbl">روز</div></div>
+        <div class="time-box"><div class="val" id="cd-hours">--</div><div class="lbl">ساعت</div></div>
+        <div class="time-box"><div class="val" id="cd-mins">--</div><div class="lbl">دقیقه</div></div>
+        <div class="time-box"><div class="val" id="cd-secs">--</div><div class="lbl">ثانیه</div></div>
+    </div>
+    <p style="text-align:center; font-weight:bold; color:var(--primary); margin-top:10px;">جمعه ۳ مهر ۱۴۰۵ | ساعت ۱۳:۰۰ تا ۱۵:۰۰</p>
+</div>
+
+<div class="sec" style="border:none;">
+    <h3>چرا باید در این رویداد شرکت کنید؟</h3>
+    <p>مهندسی مواد مرز بین تخیل و واقعیت است. از تراشه‌های قدرتمند موبایلت تا موتور جت و بافت‌های مصنوعی بدن انسان، همه و همه با پیشرفت علم مواد ساخته شده‌اند. در این همایش، جادوی ساخت و تغییر خواص مواد را از نزدیک لمس می‌کنید و با دنیایی آشنا می‌شوید که آینده تکنولوژی را رقم می‌زند.</p>
+</div>
+
+<div class="map-box">
+    <h4>${iconPin} نقشه دانشگاه</h4>
+    <img src="Map.png" alt="نقشه دانشگاه" style="width: 100%; border-radius: 12px; margin: 10px 0; max-height: 250px; object-fit: cover;">
+    <p style="margin-bottom:15px;">برای مسیریابی به سمت سالن کلیک کنید.</p>
+    <a href="geo:35.70468,51.3503401?q=Jaber%20Ebn%20Hayan%20Amphitheatre" target="_blank" class="btn" style="max-width: 250px; margin: 0 auto;">مسیریابی</a>
+</div>
+
+<div class="actions" style="margin-top:20px;">
+    <a href="https://evnd.co/f9kCH" target="_blank" class="btn" style="font-size:1.2rem; padding:18px;">${iconTicket} خرید بلیط شرکت در رویداد</a>
+</div>
+`;
+        window.scrollTo(0,0);
+
+        // Start countdown for Friday 3rd Mehr (around Sep 25, 2026, 13:00 IST)
+        const targetDate = new Date("2026-09-25T13:00:00+03:30").getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                document.querySelector('.countdown-wrap').innerHTML = `<h3 style="color:var(--primary);">رویداد آغاز شده است!</h3>`;
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('cd-days').innerText = fa(d);
+            document.getElementById('cd-hours').innerText = fa(h);
+            document.getElementById('cd-mins').innerText = fa(m);
+            document.getElementById('cd-secs').innerText = fa(s);
+        }
+        updateCountdown();
+        countdownInterval = setInterval(updateCountdown, 1000);
+    }
+
+    function intro() {
+        clearTimer();
+        app.className = "intro fade";
+        app.innerHTML = `
+<div class="breadcrumb"><a onclick="goHome()">خانه</a> <span class="sep">/</span> <span>تست شخصیت</span></div>
+<h1 style="margin-top:10px;">تو از چه جنسی هستی؟</h1>
+<p style="margin-top:10px">هر آدمی خواص یک ماده را دارد: یکی مثل فولاد محکم است، یکی مثل مس انرژی را منتقل می‌کند. ببین تو کدام متریالی.</p>
+<div class="grid" style="pointer-events: none;">${KEYS.map((k,i)=>tile(k,"",i).replace('class="tile','style="animation-delay:'+i*45+'ms" class="tile')).join("")}</div>
+<button class="btn" onclick="start()">شروع تست</button>
+<div class="meta" style="text-align:center">۱۲ سؤال، حدود ۳ دقیقه</div>`;
+        window.scrollTo(0,0);
+    }
+
+    function gallery() {
+        clearTimer();
+        app.className = "gal fade";
+        app.innerHTML = `
+<div class="breadcrumb"><a onclick="goHome()">خانه</a> <span class="sep">/</span> <a onclick="intro()">تست</a> <span class="sep">/</span> <span>همه متریال‌ها</span></div>
+<h2 style="margin-top:14px; text-align:center;">۱۲ متریال، ۱۲ شخصیت</h2>
+<p style="margin-bottom: 20px; text-align:center;">از فلز و سرامیک تا پلیمر، کامپوزیت و مواد هوشمند. روی هر کدام کلیک کنید تا شخصیتش را ببینید.</p>
+<div class="grid" style="cursor: pointer;">
+    ${KEYS.map((k,i)=>`<button class="tile ${M[k].dark?"dark":""}" onclick="result('${k}')" style="background:linear-gradient(145deg,${M[k].g[0]},${M[k].g[1]}); border:none; outline:none;"><span class="n">${fa(i+1)}</span><span class="s">${M[k].sym}</span><span class="nm">${M[k].name}</span></button>`).join("")}
+</div>
+<div class="actions" style="margin-top: 20px;">
+    <button class="btn" onclick="start()">${iconFlask} شروع تست شخصیت</button>
+</div>`;
+        window.scrollTo(0,0);
+    }
+
+    function start() { clearTimer(); ans=[]; cur=0; order=Q.map(q=>shuffle([0,1,2,3])); quiz(); }
+
+    function quiz() {
+        const q = Q[cur];
+        app.className = "";
+        app.innerHTML = `
+<div class="top">
+    <div class="breadcrumb" style="margin:0;"><a onclick="goHome()">خانه</a> <span class="sep">/</span> <a onclick="intro()">تست</a></div>
+    <span style="white-space: nowrap; font-weight: bold;">سؤال ${fa(cur+1)} از ${fa(Q.length)}</span>
+</div>
+<div class="bar"><i style="width:${cur/Q.length*100}%"></i></div>
+<div class="fade"><h2>${q.q}</h2>
+<div class="opts">${order[cur].map(i=>`<button class="opt ${ans[cur]===i?"on":""}" onclick="pick(${i},this)">${q.o[i][0]}</button>`).join("")}</div></div>`;
+        window.scrollTo(0,0);
+    }
+
+    function pick(i, el) {
+        ans[cur] = i;
+        document.querySelectorAll(".opt").forEach(b=>b.classList.remove("on"));
+        el.classList.add("on");
+        setTimeout(()=>{ if(cur < Q.length-1){ cur++; quiz(); } else finish(); }, 260);
+    }
+
+    function finish() {
+        const s={}, p={};
+        KEYS.forEach(k=>{s[k]=0; p[k]=0;});
+        ans.forEach((a,qi)=>{
+            const w = Q[qi].o[a][1];
+            for(const k in w) { s[k]+=w[k]; if(w[k]===2) p[k]++; }
+        });
+        const rank = [...KEYS].sort((a,b)=>s[b]-s[a] || p[b]-p[a]);
+        const total = rank.reduce((t,k)=>t+s[k],0);
+        const top = rank.filter(k=>s[k]>0).slice(0,4);
+        let comp = top.map(k=>[k, Math.round(s[k]/total*100)]);
+        const rest = 100 - comp.reduce((t,c)=>t+c[1],0);
+        result(rank[0], comp, rest);
+    }
+
+    function copyDiscount(code, el) {
+        navigator.clipboard.writeText(code).then(() => {
+            const originalText = el.innerHTML;
+            el.innerHTML = `${iconCheck} کپی شد!`;
+            el.style.background = 'var(--primary)';
+            el.style.color = '#fff';
+            setTimeout(() => {
+                el.innerHTML = originalText;
+                el.style.background = 'var(--card-bg)';
+                el.style.color = '';
+            }, 2000);
+        });
+    }
+
+    function result(k, comp, rest) {
+        clearTimer();
+        currentResultData = { k, comp, rest };
+        const m = M[k];
+        const mt = M[m.match];
+        app.className = "";
+
+        app.innerHTML = `
+<div class="breadcrumb"><a onclick="goHome()">خانه</a> <span class="sep">/</span> <a onclick="intro()">تست</a> <span class="sep">/</span> <span>${comp ? 'نتیجه من' : 'معرفی متریال'}</span></div>
+<div class="hero fade">
+<div class="kicker">${comp ? "جنس تو" : m.fam}</div>
+<div class="tile big ${m.dark?"dark":""}" style="background:linear-gradient(145deg,${m.g[0]},${m.g[1]})">
+    <span class="n">${fa(KEYS.indexOf(k)+1)}</span><span class="s">${m.sym}</span><span class="nm">${m.name}</span>
+</div>
+<h1>${m.name}</h1>
+<div class="tag">«${m.tag}»</div>
+<div class="chips" style="justify-content:center">${m.str.map(x=>`<span class="chip">${x}</span>`).join("")}</div>
+</div>
+
+${comp ? `
+<div class="promo-box fade" style="animation-delay: 0.2s;">
+    <h3 style="margin-bottom: 5px;">${iconStar} تخفیف ویژه غرفه!</h3>
+    <p style="font-size: 0.9rem;">به خاطر انجام تست، کد تخفیف زیر برای خرید بلیط رویداد به شما تعلق گرفت:</p>
+    <div class="discount-code" onclick="copyDiscount('MS13D85', this)" title="برای کپی کلیک کنید">MS13D85</div>
+    <a href="https://evnd.co/f9kCH" target="_blank" class="btn" style="margin-top: 10px;">${iconTicket} استفاده و خرید بلیط</a>
+</div>
+` : ""}
+
+<div class="sec"><p>${m.desc}</p></div>
+
+${comp ? `<div class="sec"><h3>آنالیز ترکیب شخصیت تو</h3>
+<div class="comp">${comp.map(([c,v])=>`<i style="width:${v}%;background:${M[c].g[1]}"></i>`).join("")}${rest>0?`<i style="width:${rest}%;background:var(--line)"></i>`:""}</div>
+<div class="legend">${comp.map(([c,v])=>`<span style="--c:${M[c].g[1]}">${M[c].name} ${fa(v)}٪</span>`).join("")}${rest>0?`<span style="--c:var(--line)">سایر ${fa(rest)}٪</span>`:""}</div></div>` : ""}
+
+<div class="sec"><h3>خواص</h3>
+${STAT.map((l,i)=>`<div class="stat"><span>${l}</span><div class="dots">${[0,1,2,3,4].map(j=>`<i class="${j<m.st[i]?"f":""}"></i>`).join("")}</div></div>`).join("")}</div>
+
+<div class="sec"><h3>نقطه شکست</h3><p>${m.weak}</p></div>
+<div class="sec"><h3>در دنیای واقعی</h3><p>${m.fact}</p></div>
+
+<div class="sec"><h3>هم‌تیمی ایده‌آل</h3>
+<div class="mate">
+    <div class="tile ${mt.dark?"dark":""}" style="background:linear-gradient(145deg,${mt.g[0]},${mt.g[1]})">
+        <span class="n">${fa(KEYS.indexOf(m.match)+1)}</span><span class="s">${mt.sym}</span><span class="nm">${mt.name}</span>
+    </div>
+    <div><b>${mt.name}</b><p style="margin-top:4px">${m.why}</p></div>
+</div></div>
+
+<div class="actions">
+${comp ? `<button id="btn-share" class="btn" onclick="shareImage(this)">${iconShare} اشتراک‌گذاری نتیجه</button>
+<div class="row"><button class="btn ghost" onclick="start()">تست دوباره</button><button class="btn ghost" onclick="gallery()">همه متریال‌ها</button></div>`
+            :`<button class="btn ghost" onclick="gallery()">بازگشت به متریال‌ها</button>`}
+</div>`;
+        window.scrollTo(0,0);
+    }
+
+    // ---------------- SHARE IMAGE LOGIC ----------------
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' '); let line = '';
+        for(let n = 0; n < words.length; n++) {
+            let testLine = line + words[n] + ' ';
+            let metrics = ctx.measureText(testLine);
+            if(metrics.width > maxWidth && n > 0) {
+                ctx.fillText(line, x, y);
+                line = words[n] + ' '; y += lineHeight;
+            } else { line = testLine; }
+        }
+        ctx.fillText(line, x, y);
+        return y + lineHeight;
+    }
+
+    async function shareImage(btnEl) {
+        if(!currentResultData) return;
+
+        // تنظیم وضعیت لودینگ برای دکمه
+        const originalBtnHTML = btnEl.innerHTML;
+        btnEl.disabled = true;
+        btnEl.innerHTML = `${iconSpinner} در حال آماده‌سازی تصویر...`;
+
+        const { k, comp } = currentResultData;
+        const m = M[k];
+        const mt = M[m.match];
+        const isLight = document.body.classList.contains('light-mode');
+
+        const shareCanvas = document.createElement('canvas');
+        shareCanvas.width = 1080;
+        shareCanvas.height = 1800;
+        const sCtx = shareCanvas.getContext('2d');
+        sCtx.direction = 'rtl';
+
+        // 1. Background Gradient
+        const grad = sCtx.createLinearGradient(0, 0, 0, 1800);
+        if(isLight) {
+            grad.addColorStop(0, '#f4f6f9'); grad.addColorStop(1, '#e2e8f0');
+        } else {
+            grad.addColorStop(0, '#000a1a'); grad.addColorStop(1, '#001433');
+        }
+        sCtx.fillStyle = grad;
+        sCtx.fillRect(0, 0, 1080, 1800);
+
+        // 2. 3D Elements Background
+        const draw3DStatic = () => {
+            const typesLocal = ['fcc', 'hex', 'tetra', 'cubic'];
+            for(let i=0; i<12; i++) {
+                let type = typesLocal[Math.floor(Math.random() * typesLocal.length)];
+                let sx = Math.random() * 1080;
+                let sy = Math.random() * 1800;
+                let rotX = Math.random() * Math.PI * 2;
+                let rotY = Math.random() * Math.PI * 2;
+                let rotZ = Math.random() * Math.PI * 2;
+                let scale = (Math.random() * 30 + 25);
+                const struct = structures[type];
+                const pNodes = [];
+                for (let j = 0; j < struct.nodes.length; j++) {
+                    let [nx, ny, nz] = struct.nodes[j];
+                    let y1 = ny * Math.cos(rotX) - nz * Math.sin(rotX);
+                    let z1 = ny * Math.sin(rotX) + nz * Math.cos(rotX);
+                    let x2 = nx * Math.cos(rotY) + z1 * Math.sin(rotY);
+                    let z2 = -nx * Math.sin(rotY) + z1 * Math.cos(rotY);
+                    let x3 = x2 * Math.cos(rotZ) - y1 * Math.sin(rotZ);
+                    let y3 = x2 * Math.sin(rotZ) + y1 * Math.cos(rotZ);
+                    pNodes.push({x: sx + x3 * scale, y: sy + y3 * scale, z: z2});
+                }
+                sCtx.lineWidth = 2;
+                sCtx.strokeStyle = isLight ? 'rgba(0, 32, 81, 0.12)' : 'rgba(59, 130, 246, 0.2)';
+                sCtx.beginPath();
+                for (let j = 0; j < struct.edges.length; j++) {
+                    let s = pNodes[struct.edges[j][0]], e = pNodes[struct.edges[j][1]];
+                    sCtx.moveTo(s.x, s.y); sCtx.lineTo(e.x, e.y);
+                }
+                sCtx.stroke();
+                sCtx.fillStyle = isLight ? 'rgba(0, 32, 81, 0.2)' : 'rgba(59, 130, 246, 0.3)';
+                for (let j = 0; j < pNodes.length; j++) {
+                    let n = pNodes[j];
+                    let r = Math.max(1, (scale * 0.15) + (n.z * 1.5) - 2);
+                    sCtx.beginPath(); sCtx.arc(n.x, n.y, r, 0, Math.PI*2); sCtx.fill();
+                }
+            }
+        };
+        draw3DStatic();
+
+        const textColor = isLight ? '#001029' : '#ffffff';
+        const mutedColor = isLight ? '#475569' : '#94a3b8';
+        const primaryColor = isLight ? '#002051' : '#3b82f6';
+
+        const drawRoundedRect = (x, y, w, h, r) => {
+            sCtx.beginPath();
+            sCtx.moveTo(x+r, y); sCtx.lineTo(x+w-r, y); sCtx.quadraticCurveTo(x+w, y, x+w, y+r);
+            sCtx.lineTo(x+w, y+h-r); sCtx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+            sCtx.lineTo(x+r, y+h); sCtx.quadraticCurveTo(x, y+h, x, y+h-r);
+            sCtx.lineTo(x, y+r); sCtx.quadraticCurveTo(x, y, x+r, y); sCtx.closePath();
+        };
+
+        drawRoundedRect(60, 60, 960, 1680, 50);
+        sCtx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.9)' : 'rgba(4, 15, 35, 0.85)';
+        sCtx.fill();
+        sCtx.strokeStyle = isLight ? 'rgba(0, 32, 81, 0.1)' : 'rgba(100, 140, 255, 0.15)';
+        sCtx.lineWidth = 2;
+        sCtx.stroke();
+
+        const drawLine = (y) => {
+            sCtx.beginPath(); sCtx.moveTo(120, y); sCtx.lineTo(960, y);
+            sCtx.strokeStyle = isLight ? 'rgba(0, 32, 81, 0.1)' : 'rgba(255,255,255,0.1)';
+            sCtx.stroke();
+        }
+
+        // Header
+        sCtx.fillStyle = textColor;
+        sCtx.textAlign = 'right';
+        sCtx.textBaseline = 'middle';
+        sCtx.font = 'bold 45px Vazirmatn';
+        sCtx.fillText('هویت متریالی من:', 960, 150);
+
+        // 4. Element Tile (Left) & Traits
+        const tileGrad = sCtx.createLinearGradient(120, 220, 400, 500);
+        tileGrad.addColorStop(0, m.g[0]);
+        tileGrad.addColorStop(1, m.g[1]);
+        sCtx.fillStyle = tileGrad;
+        drawRoundedRect(120, 220, 280, 280, 40);
+        sCtx.fill();
+
+        sCtx.textAlign = 'center';
+        sCtx.fillStyle = m.dark ? '#001029' : '#ffffff';
+        sCtx.font = 'bold 100px Vazirmatn';
+        sCtx.fillText(m.sym, 260, 340);
+        sCtx.font = 'bold 40px Vazirmatn';
+        sCtx.fillText(m.name, 260, 440);
+
+        // Traits
+        sCtx.textAlign = 'right';
+        sCtx.fillStyle = primaryColor;
+        sCtx.font = 'bold 36px Vazirmatn';
+        let nextY = wrapText(sCtx, m.tag, 960, 250, 500, 55);
+
+        sCtx.lineWidth = 1.5;
+        let chipY = nextY + 15;
+        m.str.forEach(text => {
+            sCtx.font = '30px Vazirmatn';
+            let tW = sCtx.measureText(text).width;
+            let cW = tW + 50;
+            drawRoundedRect(960 - cW, chipY, cW, 55, 27.5);
+            sCtx.fillStyle = isLight ? 'rgba(0, 32, 81, 0.05)' : 'rgba(255, 255, 255, 0.05)';
+            sCtx.fill();
+            sCtx.strokeStyle = isLight ? 'rgba(0, 32, 81, 0.1)' : 'rgba(255, 255, 255, 0.2)';
+            sCtx.stroke();
+            sCtx.fillStyle = textColor;
+            sCtx.fillText(text, 960 - 25, chipY + 28);
+            chipY += 75;
+        });
+
+        drawLine(560);
+
+        // 5. Properties
+        sCtx.fillStyle = textColor;
+        sCtx.font = 'bold 35px Vazirmatn';
+        sCtx.fillText('خواص ماده:', 960, 620);
+
+        let statY = 690;
+        STAT.forEach((statName, i) => {
+            sCtx.textAlign = 'right';
+            sCtx.fillStyle = textColor;
+            sCtx.font = '30px Vazirmatn';
+            sCtx.fillText(statName, 960, statY + 15);
+
+            for(let j=0; j<5; j++) {
+                let dotX = 400 - (j * 60);
+                drawRoundedRect(dotX, statY, 45, 30, 15);
+                if(j < m.st[i]) {
+                    sCtx.fillStyle = primaryColor;
+                } else {
+                    sCtx.fillStyle = isLight ? 'rgba(0,32,81,0.1)' : 'rgba(255,255,255,0.1)';
+                }
+                sCtx.fill();
+            }
+            statY += 60;
+        });
+
+        drawLine(1010);
+
+        // 6. Ideal Match
+        sCtx.fillStyle = textColor;
+        sCtx.font = 'bold 35px Vazirmatn';
+        sCtx.fillText('هم‌تیمی ایده‌آل:', 960, 1070);
+
+        const mtGrad = sCtx.createLinearGradient(840, 1120, 960, 1240);
+        mtGrad.addColorStop(0, mt.g[0]);
+        mtGrad.addColorStop(1, mt.g[1]);
+        sCtx.fillStyle = mtGrad;
+        drawRoundedRect(840, 1120, 120, 120, 25);
+        sCtx.fill();
+
+        sCtx.textAlign = 'center';
+        sCtx.fillStyle = mt.dark ? '#001029' : '#ffffff';
+        sCtx.font = 'bold 50px Vazirmatn';
+        sCtx.fillText(mt.sym, 900, 1175);
+        sCtx.font = 'bold 25px Vazirmatn';
+        sCtx.fillText(mt.name, 900, 1215);
+
+        sCtx.textAlign = 'right';
+        sCtx.fillStyle = mutedColor;
+        sCtx.font = '30px Vazirmatn';
+        wrapText(sCtx, m.why, 800, 1160, 650, 45);
+
+        drawLine(1310);
+
+        // 7. Composition Bar
+        if(comp) {
+            sCtx.fillStyle = textColor;
+            sCtx.font = 'bold 35px Vazirmatn';
+            sCtx.fillText('ترکیب من:', 960, 1370);
+
+            let barW = 840;
+            let barX = 120;
+            let barY = 1420;
+
+            sCtx.save();
+            drawRoundedRect(barX, barY, barW, 35, 17.5);
+            sCtx.fillStyle = isLight ? '#cbd5e1' : '#1e293b';
+            sCtx.fill();
+            sCtx.clip();
+
+            let currentX = barX;
+            comp.forEach(([cK, val]) => {
+                let segW = (val / 100) * barW;
+                sCtx.fillStyle = M[cK].g[isLight ? 1 : 0];
+                sCtx.fillRect(currentX, barY, segW + 1, 35);
+                currentX += segW;
+            });
+            sCtx.restore();
+
+            sCtx.textAlign = 'center';
+            sCtx.fillStyle = mutedColor;
+            sCtx.font = '28px Vazirmatn';
+            let compText = comp.map(([cK, val]) => `${M[cK].name} ${fa(val)}٪`).join('   |   ');
+            sCtx.fillText(compText, 540, 1490);
+        }
+
+        drawLine(1550);
+
+        // 8. Footer & QR Code integration
+        sCtx.textAlign = 'center';
+        sCtx.fillStyle = mutedColor;
+        sCtx.font = '30px Vazirmatn';
+        sCtx.fillText('غرفه مهندسی و علم مواد دانشگاه صنعتی شریف (SUT)', 540, 1620);
+        sCtx.font = 'bold 25px Vazirmatn';
+        sCtx.fillStyle = primaryColor;
+        sCtx.fillText('انجمن علمی بلور', 540, 1670);
+
+        const t = `mavade-sharif.ir`;
+
+        // Generate and draw QR Code
+        const drawQRAndExport = async () => {
+            try {
+                if (window.QRCode) {
+                    const qrUrl = await QRCode.toDataURL(t, {
+                        margin: 1,
+                        width: 150,
+                        color: { dark: isLight ? '#002051' : '#3b82f6', light: '#0000' }
+                    });
+                    const qrImg = new Image();
+                    qrImg.src = qrUrl;
+                    await new Promise(r => qrImg.onload = r);
+
+                    // Draw QR background
+                    sCtx.fillStyle = isLight ? 'rgba(0,32,81,0.05)' : 'rgba(255,255,255,0.85)';
+                    drawRoundedRect(80, 1560, 160, 160, 20);
+                    sCtx.fill();
+                    // Draw QR
+                    sCtx.drawImage(qrImg, 85, 1565, 150, 150);
+                }
+            } catch (err) { console.error('QR Generate Error', err); }
+
+            // Export and Reset Button
+            shareCanvas.toBlob(async (blob) => {
+                const file = new File([blob], 'material-result.png', { type: 'image/png' });
+
+                // برگرداندن دکمه به حالت اولیه
+                btnEl.innerHTML = originalBtnHTML;
+                btnEl.disabled = false;
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try { await navigator.share({ title: 'تست متریال', text: t, files: [file] }); }
+                    catch (e) {}
+                } else {
+                    const link = document.createElement('a');
+                    link.download = 'material-result.png';
+                    link.href = shareCanvas.toDataURL();
+                    link.click();
+                    const d = document.createElement("div");
+                    d.className="toast"; d.innerHTML=`${iconCheck} عکس در گالری ذخیره شد!`;
+                    document.body.appendChild(d);
+                    setTimeout(()=> {
+                        d.style.animation = 'fade 0.4s reverse forwards';
+                        setTimeout(() => d.remove(), 400);
+                    }, 2500);
+                }
+            });
+        };
+
+        drawQRAndExport();
+    }
+
+    // ---------------- 3D CANVAS BACKGROUND & PARALLAX ----------------
+
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Parallax logic
+    let targetMouseX = 0, targetMouseY = 0;
+    let currentMouseX = 0, currentMouseY = 0;
+
+    window.addEventListener('mousemove', e => {
+        targetMouseX = (e.clientX - width / 2) * 0.04;
+        targetMouseY = (e.clientY - height / 2) * 0.04;
+    });
+    window.addEventListener('deviceorientation', e => {
+        if(e.gamma && e.beta) {
+            targetMouseX = e.gamma * 1.5;
+            targetMouseY = (e.beta - 45) * 1.5;
+        }
+    });
+
+    const structures = {
+        fcc: {
+            nodes: [[-1,-1,-1], [1,-1,-1], [1,1,-1], [-1,1,-1],[-1,-1,1], [1,-1,1], [1,1,1], [-1,1,1],[0,0,-1], [0,0,1], [-1,0,0], [1,0,0], [0,-1,0], [0,1,0]],
+            edges: [[0,1], [1,2], [2,3], [3,0], [4,5], [5,6], [6,7], [7,4],[0,4], [1,5], [2,6], [3,7]]
+        },
+        hex: {
+            nodes: [[Math.sin(0), Math.cos(0), 0],[Math.sin(Math.PI/3), Math.cos(Math.PI/3), 0],[Math.sin(2*Math.PI/3), Math.cos(2*Math.PI/3), 0],[Math.sin(Math.PI), Math.cos(Math.PI), 0],[Math.sin(4*Math.PI/3), Math.cos(4*Math.PI/3), 0],[Math.sin(5*Math.PI/3), Math.cos(5*Math.PI/3), 0]],
+            edges: [ [0,1], [1,2], [2,3], [3,4], [4,5], [5,0] ]
+        },
+        tetra: {
+            nodes: [[0,0,0], [1,1,1], [-1,-1,1], [-1,1,-1], [1,-1,-1]],
+            edges: [ [0,1], [0,2], [0,3], [0,4] ]
+        },
+        cubic: {
+            nodes: [[-1,-1,-1], [1,-1,-1], [1,1,-1], [-1,1,-1],[-1,-1,1], [1,-1,1], [1,1,1], [-1,1,1]],
+            edges: [[0,1], [1,2], [2,3], [3,0], [4,5], [5,6], [6,7], [7,4],[0,4], [1,5], [2,6], [3,7]]
+        }
+    };
+
+    const types = ['fcc', 'hex', 'tetra', 'cubic'];
+    const particles = [];
+
+    class MaterialParticle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.z = Math.random() * 200 - 100;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = (Math.random() - 0.5) * 0.5;
+            this.rotX = Math.random() * Math.PI * 2;
+            this.rotY = Math.random() * Math.PI * 2;
+            this.rotZ = Math.random() * Math.PI * 2;
+            this.vRotX = (Math.random() - 0.5) * 0.02;
+            this.vRotY = (Math.random() - 0.5) * 0.02;
+            this.vRotZ = (Math.random() - 0.5) * 0.02;
+            this.type = types[Math.floor(Math.random() * types.length)];
+            this.scale = (Math.random() * 25 + 20) * 1.2;
+        }
+
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            this.rotX += this.vRotX; this.rotY += this.vRotY; this.rotZ += this.vRotZ;
+            if (this.x < -150) this.x = width + 150;
+            if (this.x > width + 150) this.x = -150;
+            if (this.y < -150) this.y = height + 150;
+            if (this.y > height + 150) this.y = -150;
+        }
+
+        draw(ctx) {
+            const isLight = document.body.classList.contains('light-mode');
+            const struct = structures[this.type];
+            const projectedNodes = [];
+
+            for (let i = 0; i < struct.nodes.length; i++) {
+                let [nx, ny, nz] = struct.nodes[i];
+                let y1 = ny * Math.cos(this.rotX) - nz * Math.sin(this.rotX);
+                let z1 = ny * Math.sin(this.rotX) + nz * Math.cos(this.rotX);
+                let x2 = nx * Math.cos(this.rotY) + z1 * Math.sin(this.rotY);
+                let z2 = -nx * Math.sin(this.rotY) + z1 * Math.cos(this.rotY);
+                let x3 = x2 * Math.cos(this.rotZ) - y1 * Math.sin(this.rotZ);
+                let y3 = x2 * Math.sin(this.rotZ) + y1 * Math.cos(this.rotZ);
+
+                // اعمال اثر پارالاکس به موقعیت ذرات
+                let pFactor = (this.z + 100) / 200; // برای دادن حس عمق به پارالاکس
+                let px = this.x + x3 * this.scale + (currentMouseX * pFactor);
+                let py = this.y + y3 * this.scale + (currentMouseY * pFactor);
+
+                projectedNodes.push({x: px, y: py, z: z2});
+            }
+
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = isLight ? 'rgba(0,32,81,0.3)' : 'rgba(59, 130, 246, 0.25)';
+
+            ctx.beginPath();
+            for (let i = 0; i < struct.edges.length; i++) {
+                const start = projectedNodes[struct.edges[i][0]];
+                const end = projectedNodes[struct.edges[i][1]];
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+            }
+            ctx.stroke();
+
+            ctx.fillStyle = isLight ? 'rgba(0,32,81,0.6)' : 'rgba(37, 99, 235, 0.6)';
+            for (let i = 0; i < projectedNodes.length; i++) {
+                const node = projectedNodes[i];
+                const baseSize = (this.scale * 0.15) + (node.z * 1.5);
+                const finalSize = Math.max(1, baseSize - 2);
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, finalSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    const particleCount = window.innerWidth < 768 ? 10 : 20;
+    for (let i = 0; i < particleCount; i++) { particles.push(new MaterialParticle()); }
+
+    function animate() {
+        // نرم کردن حرکت پارالاکس
+        currentMouseX += (targetMouseX - currentMouseX) * 0.1;
+        currentMouseY += (targetMouseY - currentMouseY) * 0.1;
+
+        ctx.clearRect(0, 0, width, height);
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw(ctx);
+        }
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+    goHome();
+
+</script>
+</body>
+</html>
